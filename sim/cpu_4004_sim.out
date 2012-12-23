@@ -1,0 +1,16 @@
+0 fs reset info : Driveing inputs passive
+0 fs reset info : Driving reset
+1007575681 fs cpu info : Testing the halt instruction
+2310605961 fs simlation info : Ending simulation
+-------------------------------------------------------------------------------
+Summary
+-------------------------------------------------------------------------------
+infos: 6
+notes: 0
+warnings: 0
+errors: 0
+failures: 0
+Suppressed messged: 0
+-------------------------------------------------------------------------------
+Result: PASS
+-------------------------------------------------------------------------------

@@ -1,0 +1,66 @@
+[*]
+[*] GTKWave Analyzer v3.3.41 (w)1999-2012 BSI
+[*] Sun Dec 23 14:07:59 2012
+[*]
+[dumpfile] "/home/oddbjorn/privat/comp1/01/hdl/sim/cpu_4004_wave.ghw"
+[dumpfile_mtime] "Sun Dec 23 14:03:49 2012"
+[dumpfile_size] 3434
+[savefile] "/home/oddbjorn/privat/comp1/01/hdl/sim/cpu_4004_wave.gtkw"
+[timestart] 0
+[size] 1920 1025
+[pos] -1 -1
+*-28.355639 1189393849 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.cpu_4004_tb.
+[treeopen] top.cpu_4004_tb.dut.r.
+[sst_width] 215
+[signals_width] 204
+[sst_expanded] 1
+[sst_vpaned_height] 311
+@200
+-Global
+@28
+top.cpu_4004_tb.clk
+top.cpu_4004_tb.reset_n
+@200
+-CPU control
+@28
+top.cpu_4004_tb.cpu_input.run
+top.cpu_4004_tb.cpu_input.step
+top.cpu_4004_tb.cpu_input.stop
+@200
+-CPU status
+@28
+top.cpu_4004_tb.cpu_output.beep
+top.cpu_4004_tb.cpu_output.halted
+top.cpu_4004_tb.cpu_output.running
+top.cpu_4004_tb.cpu_output.paused
+@200
+-Display
+@28
+top.cpu_4004_tb.cpu_output.digit_value
+top.cpu_4004_tb.cpu_output.digit_latch
+@200
+-LEDs
+@28
+top.cpu_4004_tb.cpu_output.led_fetch
+top.cpu_4004_tb.cpu_output.led_dec
+top.cpu_4004_tb.cpu_output.led_exec
+@200
+-Memory
+@28
+top.cpu_4004_tb.cpu_output.mem_addr
+top.cpu_4004_tb.cpu_output.mem_rd
+top.cpu_4004_tb.cpu_input.mem_rdata
+top.cpu_4004_tb.cpu_output.mem_wr
+top.cpu_4004_tb.cpu_output.mem_wdata
+@200
+-CPU internals
+@28
+top.cpu_4004_tb.dut.r.reg_ip
+top.cpu_4004_tb.dut.r.reg_is
+top.cpu_4004_tb.dut.r.reg_r0
+top.cpu_4004_tb.dut.r.reg_r1
+top.cpu_4004_tb.dut.r.state
+[pattern_trace] 1
+[pattern_trace] 0
