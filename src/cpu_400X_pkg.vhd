@@ -6,9 +6,9 @@
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 21:45:52 2012 (+0100)
 --Version: 0.1
---Last-Updated: Sun Dec 23 14:42:21 2012 (+0100)
+--Last-Updated: Sat Dec 29 20:14:42 2012 (+0100)
 --          By: oddbjorn
---    Update #: 17
+--    Update #: 22
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -51,6 +51,7 @@ use ieee.numeric_std.all;
 package cpu_400X_pkg is
 
   subtype byte is integer range 0 to 15;
+  constant byte_values : integer := byte'high + 1;
   subtype addr_range is integer range 0 to 15;
   type memory_type is array (addr_range) of byte;
 
@@ -99,6 +100,10 @@ package cpu_400X_pkg is
     mem_addr    : addr_range;
     mem_wr      : std_logic;
     mem_rd      : std_logic;
+    reg_r0      : byte;
+    reg_r1      : byte;
+    reg_ip      : byte;
+    reg_is      : byte;
   end record cpu_4004_output_type;
   
 end package cpu_400X_pkg;

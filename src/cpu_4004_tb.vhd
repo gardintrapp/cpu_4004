@@ -6,9 +6,9 @@
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 22:05:52 2012 (+0100)
 --Version: 0.1
---Last-Updated: Sun Dec 23 15:26:45 2012 (+0100)
+--Last-Updated: Sat Dec 29 22:47:49 2012 (+0100)
 --          By: oddbjorn
---    Update #: 53
+--    Update #: 120
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -63,8 +63,8 @@ architecture test of cpu_4004_tb is
   constant ID_CPU : string := "cpu";
 
   -- component ports
-  signal clk             : std_logic;
-  signal reset_n         : std_logic;
+  signal clk        : std_logic;
+  signal reset_n    : std_logic;
   signal cpu_input  : cpu_4004_input_type;
   signal cpu_output : cpu_4004_output_type;
 
@@ -82,8 +82,8 @@ architecture test of cpu_4004_tb is
   --end record memory_load_type;
   --signal memory_load : memory_load_type;
 
-  signal memory_cpu : memory_type;
-  signal memory_new : memory_type;
+  signal memory_cpu  : memory_type;
+  signal memory_new  : memory_type;
   signal memory_load : boolean;
 
   
@@ -92,8 +92,8 @@ begin  -- architecture test
   -- component instantiation
   DUT : entity work.cpu_4004
     port map (
-      clk             => clk,
-      reset_n         => reset_n,
+      clk        => clk,
+      reset_n    => reset_n,
       cpu_input  => cpu_input,
       cpu_output => cpu_output);
 
@@ -134,10 +134,10 @@ begin  -- architecture test
       constant memory : in memory_type) is
     begin  -- procedure load_memory
       wait until rising_edge(clk);
-      memory_new <= memory;
-      memory_load   <= true;
+      memory_new  <= memory;
+      memory_load <= true;
       wait until rising_edge(clk);
-      memory_load   <= false;
+      memory_load <= false;
     end procedure load_memory;
 
     -- purpose: Stop the CPU
@@ -160,11 +160,20 @@ begin  -- architecture test
       cpu_input.run <= '0';
     end procedure run_cpu;
 
+    -- purpose: Test that the CPU is halted
+    procedure test_halted is
+    begin  -- procedure test_halted
+      wait until cpu_output.halted = '1' for 10 * clk_period;
+      report_log_assert(cpu_output.halted = '1', "HALT instructiod did not halt CPU", ID_CPU, error);
+      report_log_assert(cpu_output.running = '0', "running asserted after CPU is halted", ID_CPU, error);
+      report_log_assert(cpu_output.paused = '0', "paused asserted after CPU is halted", ID_CPU, error);
+    end procedure test_halted;
+
     -- purpose: Test the halt instruction
     procedure test_halt is
       variable memory : memory_type;
     begin  -- procedure test_halt
-      report_log("Testing the halt instruction", ID_CPU, info);
+      report_log("Testing the HALT instruction", ID_CPU, info);
       wait until rising_edge(clk);
       stop_cpu;
 
@@ -179,15 +188,455 @@ begin  -- architecture test
       run_cpu;
 
       --Test the response
-      wait until cpu_output.halted = '1' for 5 * clk_period;
-      report_log_assert(cpu_output.halted = '1', "HALT instructiod did not halt CPU", ID_CPU, error);
-      report_log_assert(cpu_output.running = '0', "running asserted after CPU is halted", ID_CPU, error);
-      report_log_assert(cpu_output.paused = '0', "paused asserted after CPU is halted", ID_CPU, error);
-
+      test_halted;
       report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
-      
     end procedure test_halt;
-    
+
+    -- purpose: Test the inc_r0 instruction
+    procedure test_inc_r0 is
+      variable memory : memory_type;
+    begin  -- procedure test_inc_r0
+      report_log("Testing the INC_R0 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (15 => HALT, others => INC_R0);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      for n in 1 to 15 loop
+        if not (cpu_output.led_fetch = '1') then
+          wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+        wait until cpu_output.led_dec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+        wait until cpu_output.led_exec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+        if not (cpu_output.reg_r0 = n) then
+          wait until cpu_output.reg_r0 = n for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.reg_r0 = n, "Wrong R0 value, expected: " &
+                          integer'image(n) & " got: " & integer'image(cpu_output.reg_r0), ID_CPU, error);
+      end loop;  -- n      
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_inc_r0;
+
+    -- purpose: Test the dec_r0 instruction
+    procedure test_dec_r0 is
+      variable memory : memory_type;
+    begin  -- procedure test_dec_r0
+      report_log("Testing the DEC_R0 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (15 => HALT, others => DEC_R0);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      for n in 15 downto 1 loop
+        if not (cpu_output.led_fetch = '1') then
+          wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+        wait until cpu_output.led_dec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+        wait until cpu_output.led_exec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+        if not (cpu_output.reg_r0 = n) then
+          wait until cpu_output.reg_r0 = n for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.reg_r0 = n, "Wrong R0 value, expected: " &
+                          integer'image(n) & " got: " & integer'image(cpu_output.reg_r0), ID_CPU, error);
+      end loop;  -- n      
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_dec_r0;
+
+    -- purpose: Test the inc_r1 instruction
+    procedure test_inc_r1 is
+      variable memory : memory_type;
+    begin  -- procedure test_inc_r1
+      report_log("Testing the INC_R1 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (15 => HALT, others => INC_R1);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      for n in 1 to 15 loop
+        if not (cpu_output.led_fetch = '1') then
+          wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+        wait until cpu_output.led_dec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+        wait until cpu_output.led_exec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+        if not (cpu_output.reg_r1 = n) then
+          wait until cpu_output.reg_r1 = n for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.reg_r1 = n, "Wrong R1 value, expected: " &
+                          integer'image(n) & " got: " & integer'image(cpu_output.reg_r1), ID_CPU, error);
+      end loop;  -- n      
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_inc_r1;
+
+    -- purpose: Test the dec_r1 instruction
+    procedure test_dec_r1 is
+      variable memory : memory_type;
+    begin  -- procedure test_dec_r1
+      report_log("Testing the DEC_R1 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (15 => HALT, others => DEC_R1);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      for n in 15 downto 1 loop
+        if not (cpu_output.led_fetch = '1') then
+          wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+        wait until cpu_output.led_dec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+        wait until cpu_output.led_exec = '1' for 5 * clk_period;
+        report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+        if not (cpu_output.reg_r1 = n) then
+          wait until cpu_output.reg_r1 = n for 5 * clk_period;
+        end if;
+        report_log_assert(cpu_output.reg_r1 = n, "Wrong R1 value, expected: " &
+                          integer'image(n) & " got: " & integer'image(cpu_output.reg_r1), ID_CPU, error);
+      end loop;  -- n      
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_dec_r1;
+
+    -- purpose: Test the load_r0 instruction
+    procedure test_load_r0 (
+      constant value : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_load_r0
+      report_log("Testing the LOAD_R0 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0 => LOAD_R0, 1 => value, others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      if not (cpu_output.led_fetch = '1') then
+        wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+      if not (cpu_output.reg_r0 = value) then
+        wait until cpu_output.reg_r0 = value for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r0 = value, "Wrong R0 value, expected: " &
+                        integer'image(value) & " got: " & integer'image(cpu_output.reg_r0), ID_CPU, error);
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+
+    end procedure test_load_r0;
+
+    -- purpose: Test the load_r1 instruction
+    procedure test_load_r1 (
+      constant value : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_load_r1
+      report_log("Testing the LOAD_R1 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0 => LOAD_R1, 1 => value, others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      if not (cpu_output.led_fetch = '1') then
+        wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+      if not (cpu_output.reg_r1 = value) then
+        wait until cpu_output.reg_r1 = value for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r1 = value, "Wrong R1 value, expected: " &
+                        integer'image(value) & " got: " & integer'image(cpu_output.reg_r1), ID_CPU, error);
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+
+    end procedure test_load_r1;
+
+    -- purpose: Test the add_r0_r1 instruction
+    procedure test_add_r0_r1 (
+      constant a : in byte;
+      constant b : in byte) is
+      variable res    : byte;
+      variable memory : memory_type;
+    begin  -- procedure test_add_r0_r1
+      report_log("Testing the ADD_R0_R1 instruction", ID_CPU, info);
+      res := (a + b) mod byte_values;
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0      => LOAD_R0, 1 => a, 2 => LOAD_R1, 3 => b, 4 => ADD_R0_R1,
+                 others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the two load instructions to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --Test add instruction
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+      if not (cpu_output.reg_r0 = res) then
+        wait until cpu_output.reg_r0 = res for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r0 = res, "Wrong R0 value, expected: " &
+                        integer'image(res) & " got: " & integer'image(cpu_output.reg_r0), ID_CPU, error);
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_add_r0_r1;
+
+    -- purpose: Test the sub_r0_r1 instruction
+    procedure test_sub_r0_r1 (
+      constant a : in byte;
+      constant b : in byte) is
+      variable res    : byte;
+      variable memory : memory_type;
+    begin  -- procedure test_sub_r0_r1
+      report_log("Testing the SUB_R0_R1 instruction", ID_CPU, info);
+      res := (a - b) mod byte_values;
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0      => LOAD_R0, 1 => a, 2 => LOAD_R1, 3 => b, 4 => SUB_R0_R1,
+                 others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the two load instructions to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --Test sub instruction
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+      if not (cpu_output.reg_r0 = res) then
+        wait until cpu_output.reg_r0 = res for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r0 = res, "Wrong R0 value, expected: " &
+                        integer'image(res) & " got: " & integer'image(cpu_output.reg_r0), ID_CPU, error);
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_sub_r0_r1;
+
+    -- purpose: Test the print_r0 instruction
+    procedure test_print_r0 (
+      constant value : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_print_r0
+      report_log("Testing the PRINT_R0 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0 => LOAD_R0, 1 => value, 2 => PRINT_R0, others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --Test sub instruction
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+      if not (cpu_output.digit_latch = '1') then
+        wait until cpu_output.digit_latch = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.digit_latch = '1', "Digit latch not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.digit_value = value, "Wrong digit value, expected: " &
+                        integer'image(value) & " got: " & integer'image(cpu_output.digit_value),
+                        ID_CPU, error);
+
+      test_halted;
+      report_log_assert(memory_cpu = memory_new, "Memory content modified", ID_CPU, error);
+    end procedure test_print_r0;
+
+    -- purpose: Test the store_r0 instruction
+    procedure test_store_r0 (
+      constant value : in byte;
+      constant addr  : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_store_r0
+      report_log("Testing the STORE_R0 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0 => LOAD_R0, 1 => value, 2 => STORE_R0, 3 => addr, others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --Test sub instruction
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      if not (cpu_output.mem_wr = '1') then
+        wait until cpu_output.mem_wr = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value: " &
+                        integer'image(value) & " got: " & integer'image(cpu_output.mem_wdata),
+                        ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_addr value: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+
+      test_halted;
+      memory(addr) := value;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_store_r0;
+
+    -- purpose: Test the store_r1 instruction
+    procedure test_store_r1 (
+      constant value : in byte;
+      constant addr  : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_store_r1
+      report_log("Testing the STORE_R1 instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0 => LOAD_R1, 1 => value, 2 => STORE_R1, 3 => addr, others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --Test sub instruction
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      if not (cpu_output.mem_wr = '1') then
+        wait until cpu_output.mem_wr = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value: " &
+                        integer'image(value) & " got: " & integer'image(cpu_output.mem_wdata),
+                        ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_addr value: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+
+      test_halted;
+      memory(addr) := value;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_store_r1;
+
   begin  -- process p_test_seq
     report_init("cpu_4004_sim.out");
     drive_passive;
@@ -196,21 +645,29 @@ begin  -- architecture test
 
     --One byte instructions
     test_halt;
-    --test_r0_inc;
-    --test_r0_dec;
-    --test_r1_inc;
-    --test_r1_dec;
-    --test_add;
-    --test_sub;
-    --test_print;
+    test_inc_r0;
+    test_dec_r0;
+    test_inc_r1;
+    test_dec_r1;
+    test_add_r0_r1(5, 13);
+    test_add_r0_r1(4, 7);
+    test_sub_r0_r1(13, 7);
+    test_sub_r0_r1(2, 11);
+    test_print_r0(2);
+    test_print_r0(15);
 
     --Two byte instructions
     --test_jp_if_nz;
     --test_jp_if_z;
-    --test_load_r0;
-    --test_load_r1;
-    --test_store_r0;
-    --test_store_r1;
+    test_load_r0(16#5#);
+    test_load_r0(16#A#);
+    test_load_r1(16#C#);
+    test_load_r1(16#3#);
+    test_store_r0(3, 14);
+    test_store_r0(13, 2);
+    test_store_r1(15, 15);
+    test_store_r1(1, 3);
+    
     --test_swap_r0;
     --test_swap_r1;
 
