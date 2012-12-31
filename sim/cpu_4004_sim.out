@@ -20,11 +20,15 @@
 13038296 ps cpu info : Testing the STORE_R0 instruction
 13614072 ps cpu info : Testing the STORE_R1 instruction
 14189848 ps cpu info : Testing the STORE_R1 instruction
-15765624 ps simlation info : Ending simulation
+14765624 ps cpu info : Testing the SWAP_R0_ADDR instruction
+15402008 ps cpu info : Testing the SWAP_R0_ADDR instruction
+16038392 ps cpu info : Testing the SWAP_R1_ADDR instruction
+16674776 ps cpu info : Testing the SWAP_R1_ADDR instruction
+18311160 ps simlation info : Ending simulation
 -------------------------------------------------------------------------------
 Summary
 -------------------------------------------------------------------------------
-infos: 24
+infos: 28
 notes: 0
 warnings: 0
 errors: 0

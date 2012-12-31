@@ -6,9 +6,9 @@
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 22:05:52 2012 (+0100)
 --Version: 0.1
---Last-Updated: Sat Dec 29 22:47:49 2012 (+0100)
+--Last-Updated: Mon Dec 31 14:19:59 2012 (+0100)
 --          By: oddbjorn
---    Update #: 120
+--    Update #: 135
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -441,7 +441,7 @@ begin  -- architecture test
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
 
-      --Test add instruction
+      --The instruction under test
       wait until cpu_output.led_fetch = '1' for 5 * clk_period;
       report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
       wait until cpu_output.led_dec = '1' for 5 * clk_period;
@@ -483,7 +483,7 @@ begin  -- architecture test
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
 
-      --Test sub instruction
+      --The instruction under test
       wait until cpu_output.led_fetch = '1' for 5 * clk_period;
       report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
       wait until cpu_output.led_dec = '1' for 5 * clk_period;
@@ -520,7 +520,7 @@ begin  -- architecture test
       --Wait for the load instruction to finish
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
 
-      --Test sub instruction
+      --The instruction under test
       wait until cpu_output.led_fetch = '1' for 5 * clk_period;
       report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
       wait until cpu_output.led_dec = '1' for 5 * clk_period;
@@ -560,7 +560,7 @@ begin  -- architecture test
       --Wait for the load instruction to finish
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
 
-      --Test sub instruction
+      --The instruction under test
       wait until cpu_output.led_fetch = '1' for 5 * clk_period;
       report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
       wait until cpu_output.led_dec = '1' for 5 * clk_period;
@@ -576,10 +576,10 @@ begin  -- architecture test
         wait until cpu_output.mem_wr = '1' for 5 * clk_period;
       end if;
       report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
-      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value: " &
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value, expected: " &
                         integer'image(value) & " got: " & integer'image(cpu_output.mem_wdata),
                         ID_CPU, error);
-      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_addr value: " &
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
                         integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
                         ID_CPU, error);
 
@@ -609,7 +609,7 @@ begin  -- architecture test
       --Wait for the load instruction to finish
       wait until cpu_output.led_exec = '1' for 20 * clk_period;
 
-      --Test sub instruction
+      --The instruction under test
       wait until cpu_output.led_fetch = '1' for 5 * clk_period;
       report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
       wait until cpu_output.led_dec = '1' for 5 * clk_period;
@@ -625,10 +625,10 @@ begin  -- architecture test
         wait until cpu_output.mem_wr = '1' for 5 * clk_period;
       end if;
       report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
-      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value: " &
+      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_wdata value, expected: " &
                         integer'image(value) & " got: " & integer'image(cpu_output.mem_wdata),
                         ID_CPU, error);
-      report_log_assert(cpu_output.mem_wdata = value, "Wrong mem_addr value: " &
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
                         integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
                         ID_CPU, error);
 
@@ -636,6 +636,140 @@ begin  -- architecture test
       memory(addr) := value;
       report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
     end procedure test_store_r1;
+
+    -- purpose: Test the swap_r0_addr instruction
+    procedure test_swap_r0_addr (
+      constant value1 : in byte;
+      constant value2 : in byte;
+      constant addr   : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_swap_r0_addr
+      report_log("Testing the SWAP_R0_ADDR instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0      => LOAD_R0, 1 => value1, 2 => SWAP_R0_ADDR, 3 => addr,
+                 others => HALT);
+      memory(addr) := value2;
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --The instruction under test
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      if not (cpu_output.mem_rd = '1') then
+        wait until cpu_output.mem_rd = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_rd = '1', "mem_rd not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+      
+      if not (cpu_output.mem_wr = '1') then
+        wait until cpu_output.mem_wr = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value1, "Wrong mem_wdata value, expected: " &
+                        integer'image(value1) & " got: " & integer'image(cpu_output.mem_wdata),
+                        ID_CPU, error);
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+
+      if not (cpu_output.reg_r0 = value2) then
+        wait until cpu_output.reg_r0 = value2 for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r0 = value2, "Wrong R0 value, expected: " &
+                        integer'image(value2) & " got: " & integer'image(cpu_output.reg_r0),
+                        ID_CPU, error);
+
+      test_halted;
+      memory(addr) := value1;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_swap_r0_addr;
+
+    -- purpose: Test the swap_r1_addr instruction
+    procedure test_swap_r1_addr (
+      constant value1 : in byte;
+      constant value2 : in byte;
+      constant addr   : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_swap_r1_addr
+      report_log("Testing the SWAP_R1_ADDR instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      --Load test program
+      memory := (0      => LOAD_R1, 1 => value1, 2 => SWAP_R1_ADDR, 3 => addr,
+                 others => HALT);
+      memory(addr) := value2;
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --The instruction under test
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      if not (cpu_output.mem_rd = '1') then
+        wait until cpu_output.mem_rd = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_rd = '1', "mem_rd not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+      
+      if not (cpu_output.mem_wr = '1') then
+        wait until cpu_output.mem_wr = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.mem_wr = '1', "mem_wr not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.mem_wdata = value1, "Wrong mem_wdata value, expected: " &
+                        integer'image(value1) & " got: " & integer'image(cpu_output.mem_wdata),
+                        ID_CPU, error);
+      report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
+                        integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
+                        ID_CPU, error);
+
+      if not (cpu_output.reg_r1 = value2) then
+        wait until cpu_output.reg_r1 = value2 for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.reg_r1 = value2, "Wrong R1 value, expected: " &
+                        integer'image(value2) & " got: " & integer'image(cpu_output.reg_r1),
+                        ID_CPU, error);
+
+      test_halted;
+      memory(addr) := value1;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_swap_r1_addr;
 
   begin  -- process p_test_seq
     report_init("cpu_4004_sim.out");
@@ -659,17 +793,19 @@ begin  -- architecture test
     --Two byte instructions
     --test_jp_if_nz;
     --test_jp_if_z;
-    test_load_r0(16#5#);
-    test_load_r0(16#A#);
-    test_load_r1(16#C#);
-    test_load_r1(16#3#);
+    test_load_r0(5);
+    test_load_r0(10);
+    test_load_r1(12);
+    test_load_r1(3);
     test_store_r0(3, 14);
     test_store_r0(13, 2);
     test_store_r1(15, 15);
     test_store_r1(1, 3);
-    
-    --test_swap_r0;
-    --test_swap_r1;
+
+    test_swap_r0_addr(3, 14, 15);
+    test_swap_r0_addr(12, 7, 6);
+    test_swap_r1_addr(5, 10, 13);
+    test_swap_r1_addr(12, 3, 5);
 
     wait for 1 us;
     sim_end;
