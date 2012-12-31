@@ -2,33 +2,37 @@
 0 ps reset info : Driving reset
 0 ps clock info : Starting clock generator
 1007608 ps cpu info : Testing the HALT instruction
-1310648 ps cpu info : Testing the INC_R0 instruction
-2750088 ps cpu info : Testing the DEC_R0 instruction
-4189528 ps cpu info : Testing the INC_R1 instruction
-5628968 ps cpu info : Testing the DEC_R1 instruction
-7068408 ps cpu info : Testing the ADD_R0_R1 instruction
-7719944 ps cpu info : Testing the ADD_R0_R1 instruction
-8371480 ps cpu info : Testing the SUB_R0_R1 instruction
-9023016 ps cpu info : Testing the SUB_R0_R1 instruction
-9674552 ps cpu info : Testing the PRINT_R0 instruction
-10189720 ps cpu info : Testing the PRINT_R0 instruction
-10704888 ps cpu info : Testing the LOAD_R0 instruction
-11144296 ps cpu info : Testing the LOAD_R0 instruction
-11583704 ps cpu info : Testing the LOAD_R1 instruction
-12023112 ps cpu info : Testing the LOAD_R1 instruction
-12462520 ps cpu info : Testing the STORE_R0 instruction
-13038296 ps cpu info : Testing the STORE_R0 instruction
-13614072 ps cpu info : Testing the STORE_R1 instruction
-14189848 ps cpu info : Testing the STORE_R1 instruction
-14765624 ps cpu info : Testing the SWAP_R0_ADDR instruction
-15402008 ps cpu info : Testing the SWAP_R0_ADDR instruction
-16038392 ps cpu info : Testing the SWAP_R1_ADDR instruction
-16674776 ps cpu info : Testing the SWAP_R1_ADDR instruction
-18311160 ps simlation info : Ending simulation
+1325800 ps cpu info : Testing the INC_R0 instruction
+3007672 ps cpu info : Testing the DEC_R0 instruction
+4689544 ps cpu info : Testing the INC_R1 instruction
+6371416 ps cpu info : Testing the DEC_R1 instruction
+8053288 ps cpu info : Testing the ADD_R0_R1 instruction
+8795736 ps cpu info : Testing the ADD_R0_R1 instruction
+9538184 ps cpu info : Testing the SUB_R0_R1 instruction
+10280632 ps cpu info : Testing the SUB_R0_R1 instruction
+11023080 ps cpu info : Testing the PRINT_R0 instruction
+11598856 ps cpu info : Testing the PRINT_R0 instruction
+12174632 ps cpu info : Testing the JP_IF_R0_NZ instruction
+13250424 ps cpu info : Testing the JP_IF_R0_NZ instruction
+14326216 ps cpu info : Testing the JP_IF_R0_Z instruction
+15568680 ps cpu info : Testing the JP_IF_R0_Z instruction
+16811144 ps cpu info : Testing the LOAD_R0 instruction
+17296008 ps cpu info : Testing the LOAD_R0 instruction
+17780872 ps cpu info : Testing the LOAD_R1 instruction
+18265736 ps cpu info : Testing the LOAD_R1 instruction
+18750600 ps cpu info : Testing the STORE_R0 instruction
+19402136 ps cpu info : Testing the STORE_R0 instruction
+20053672 ps cpu info : Testing the STORE_R1 instruction
+20705208 ps cpu info : Testing the STORE_R1 instruction
+21356744 ps cpu info : Testing the SWAP_R0_ADDR instruction
+22084040 ps cpu info : Testing the SWAP_R0_ADDR instruction
+22811336 ps cpu info : Testing the SWAP_R1_ADDR instruction
+23538632 ps cpu info : Testing the SWAP_R1_ADDR instruction
+25265928 ps simlation info : Ending simulation
 -------------------------------------------------------------------------------
 Summary
 -------------------------------------------------------------------------------
-infos: 28
+infos: 32
 notes: 0
 warnings: 0
 errors: 0

@@ -1,14 +1,14 @@
---cpu_400X_pkg.vhd --- 
+--cpu_4004_pkg.vhd --- 
 --
---Filename: cpu_400X_pkg.vhd
+--Filename: cpu_4004_pkg.vhd
 --Description: 
 --Author: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 21:45:52 2012 (+0100)
 --Version: 0.1
---Last-Updated: Sat Dec 29 20:14:42 2012 (+0100)
+--Last-Updated: Mon Dec 31 16:24:01 2012 (+0100)
 --          By: oddbjorn
---    Update #: 22
+--    Update #: 24
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -48,7 +48,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-package cpu_400X_pkg is
+package cpu_4004_pkg is
 
   subtype byte is integer range 0 to 15;
   constant byte_values : integer := byte'high + 1;
@@ -68,7 +68,7 @@ package cpu_400X_pkg is
 
   --Two byute instructions
   constant JP_IF_R0_NZ  : byte := 8;
-  constant JP_IF_R0_N   : byte := 9;
+  constant JP_IF_R0_Z   : byte := 9;
   constant LOAD_R0      : byte := 16#a#;
   constant LOAD_R1      : byte := 16#b#;
   constant STORE_R0     : byte := 16#c#;
@@ -106,6 +106,6 @@ package cpu_400X_pkg is
     reg_is      : byte;
   end record cpu_4004_output_type;
   
-end package cpu_400X_pkg;
+end package cpu_4004_pkg;
 
---cpu_400X_pkg.vhd ends here
+--cpu_4004_pkg.vhd ends here

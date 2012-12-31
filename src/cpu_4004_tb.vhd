@@ -6,9 +6,9 @@
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 22:05:52 2012 (+0100)
 --Version: 0.1
---Last-Updated: Mon Dec 31 14:19:59 2012 (+0100)
+--Last-Updated: Mon Dec 31 16:24:09 2012 (+0100)
 --          By: oddbjorn
---    Update #: 135
+--    Update #: 154
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -48,7 +48,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.sim_pkg.all;
-use work.cpu_400X_pkg.all;
+use work.cpu_4004_pkg.all;
 
 -------------------------------------------------------------------------------
 
@@ -180,7 +180,7 @@ begin  -- architecture test
       --Load test program
       memory := (HALT, INC_R0, DEC_R0, INC_R1,
                  DEC_R1, ADD_R0_R1, SUB_R0_R1, PRINT_R0,
-                 JP_IF_R0_NZ, JP_IF_R0_N, LOAD_R0, LOAD_R1,
+                 JP_IF_R0_NZ, JP_IF_R0_Z, LOAD_R0, LOAD_R1,
                  STORE_R0, STORE_R1, SWAP_R0_ADDR, SWAP_R1_ADDR);
       load_memory(memory);
 
@@ -680,7 +680,7 @@ begin  -- architecture test
       report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
                         integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
                         ID_CPU, error);
-      
+
       if not (cpu_output.mem_wr = '1') then
         wait until cpu_output.mem_wr = '1' for 5 * clk_period;
       end if;
@@ -747,7 +747,7 @@ begin  -- architecture test
       report_log_assert(cpu_output.mem_addr = addr, "Wrong mem_addr value, expected: " &
                         integer'image(addr) & " got: " & integer'image(cpu_output.mem_addr),
                         ID_CPU, error);
-      
+
       if not (cpu_output.mem_wr = '1') then
         wait until cpu_output.mem_wr = '1' for 5 * clk_period;
       end if;
@@ -771,6 +771,139 @@ begin  -- architecture test
       report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
     end procedure test_swap_r1_addr;
 
+    -- purpose: Test the jp_if_r0_nz instruction
+    procedure test_jp_if_r0_nz (
+      constant value : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_jp_if_r0_nz
+      report_log("Testing the JP_IF_R0_NZ instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      report_log_assert(value > 0, "The test value must be greater than 0", ID_CPU, error);
+      
+      --Load test program
+      memory := (
+        --Test zero
+        0 => JP_IF_R0_NZ,
+        1 => 6,
+
+        --Test non zero
+        2 => LOAD_R0,
+        3 => value,
+        4 => JP_IF_R0_NZ,
+        5 => 12,
+
+        --Print error
+        6 => LOAD_R0,
+        7 => 10,
+        8 => PRINT_R0,
+
+        --Print succsess
+        12 => LOAD_R0,
+        13 => 5,
+        14 => PRINT_R0,
+
+        others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --The instruction under test
+      if not (cpu_output.led_fetch = '1') then
+        wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      wait until cpu_output.digit_latch = '1' for 50 * clk_period;
+      report_log_assert(cpu_output.digit_latch = '1', "digit_latch not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.digit_value = 5, "Wrong digit_value, expected: " &
+                        integer'image(10) & " got: " & integer'image(cpu_output.digit_value),
+                        ID_CPU, error);
+      
+      test_halted;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_jp_if_r0_nz;
+
+    -- purpose: Test the jp_if_r0_z instruction
+    procedure test_jp_if_r0_z (
+      constant value : in byte) is
+      variable memory : memory_type;
+    begin  -- procedure test_jp_if_r0_z
+      report_log("Testing the JP_IF_R0_Z instruction", ID_CPU, info);
+      wait until rising_edge(clk);
+      stop_cpu;
+
+      report_log_assert(value > 0, "The test value must be greater than 0", ID_CPU, error);
+      
+      --Load test program
+      memory := (
+        --Test non zero
+        0 => LOAD_R0,
+        1 => value,
+        2 => JP_IF_R0_Z,
+        3 => 8,
+
+        --Test non zero
+        4 => LOAD_R0,
+        5 => 0,
+        6 => JP_IF_R0_Z,
+        7 => 12,
+
+        --Print error
+        8 => LOAD_R0,
+        9 => 5,
+        10 => PRINT_R0,
+
+        --Print succsess
+        12 => LOAD_R0,
+        13 => 10,
+        14 => PRINT_R0,
+
+        others => HALT);
+      load_memory(memory);
+
+      --Run the CPU
+      run_cpu;
+
+      --Test the response
+      --Wait for the load instruction to finish
+      wait until cpu_output.led_exec = '1' for 20 * clk_period;
+
+      --The instruction under test
+      if not (cpu_output.led_fetch = '1') then
+        wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      end if;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_fetch = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_fetch = '1', "Fetch not asserted", ID_CPU, error);
+      wait until cpu_output.led_dec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_dec = '1', "Decode not asserted", ID_CPU, error);
+      wait until cpu_output.led_exec = '1' for 5 * clk_period;
+      report_log_assert(cpu_output.led_exec = '1', "Exec not asserted", ID_CPU, error);
+
+      wait until cpu_output.digit_latch = '1' for 50 * clk_period;
+      report_log_assert(cpu_output.digit_latch = '1', "digit_latch not asserted", ID_CPU, error);
+      report_log_assert(cpu_output.digit_value = 10, "Wrong digit_value, expected: " &
+                        integer'image(10) & " got: " & integer'image(cpu_output.digit_value),
+                        ID_CPU, error);
+      
+      test_halted;
+      report_log_assert(memory_cpu = memory, "Memory content incorrect", ID_CPU, error);
+    end procedure test_jp_if_r0_z;
+
   begin  -- process p_test_seq
     report_init("cpu_4004_sim.out");
     drive_passive;
@@ -791,8 +924,10 @@ begin  -- architecture test
     test_print_r0(15);
 
     --Two byte instructions
-    --test_jp_if_nz;
-    --test_jp_if_z;
+    test_jp_if_r0_nz(1);
+    test_jp_if_r0_nz(15);
+    test_jp_if_r0_z(1);
+    test_jp_if_r0_z(15);
     test_load_r0(5);
     test_load_r0(10);
     test_load_r1(12);

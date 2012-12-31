@@ -6,9 +6,9 @@
 --Maintainer: Oddbjørn Norstrand <gardintrapp@gmail.com>
 --Created: Sat Dec 15 21:38:10 2012 (+0100)
 --Version: 0.1
---Last-Updated: Mon Dec 31 14:18:45 2012 (+0100)
+--Last-Updated: Mon Dec 31 16:24:20 2012 (+0100)
 --          By: oddbjorn
---    Update #: 121
+--    Update #: 132
 --URL: 
 --Keywords: 
 --Compatibility: 
@@ -48,12 +48,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.sim_pkg.all;
-use work.cpu_400X_pkg.all;
+use work.cpu_4004_pkg.all;
 
 entity cpu_4004 is
 
   generic (
-    READ_LATENCY : natural := 1);
+    READ_LATENCY : natural := 2);
 
   port (
     clk        : in  std_logic;
@@ -67,10 +67,10 @@ architecture twoproc of cpu_4004 is
 
   type state_type is (halted, fetch_addr, fetch_read, decode, decode_two,
                       ex_halt, ex_inc_r0, ex_dec_r0, ex_inc_r1, ex_dec_r1,
-                      ex_add_r0_r1, ex_sub_r0_r1, ex_print_r0, ex_load_r0,
-                      ex_load_r1, ex_store_r0, ex_store_r1, ex_swap_r0_addr_0,
-                      ex_swap_r0_addr_1, ex_swap_r1_addr_0, ex_swap_r1_addr_1,
-                      paused);
+                      ex_add_r0_r1, ex_sub_r0_r1, ex_print_r0, ex_jp_if_r0_nz,
+                      ex_jp_if_r0_z, ex_load_r0, ex_load_r1, ex_store_r0,
+                      ex_store_r1, ex_swap_r0_addr_0, ex_swap_r0_addr_1,
+                      ex_swap_r1_addr_0, ex_swap_r1_addr_1, paused);
   type reg_type is record
     cpu_input       : cpu_4004_input_type;
     cpu_output      : cpu_4004_output_type;
@@ -111,13 +111,16 @@ begin  -- architecture twoproc
     case r.state is
       when halted =>
         --Wait for the CPU to be started 
-        v.cpu_output.halted  := '1';
-        v.cpu_output.running := '0';
-        v.cpu_output.paused  := '0';
-        v.second_ins_byte    := false;
-        v.data_not_ins       := false;
-        v.addr               := 0;
-        v.data               := 0;
+        v.cpu_output.halted      := '1';
+        v.cpu_output.running     := '0';
+        v.cpu_output.paused      := '0';
+        v.second_ins_byte        := false;
+        v.data_not_ins           := false;
+        v.addr                   := 0;
+        v.data                   := 0;
+        v.cpu_output.digit_value := 0;
+        v.cpu_output.mem_wdata   := 0;
+        v.cpu_output.mem_addr    := 0;
         if r.cpu_input.run = '1' then
           v.state             := fetch_addr;
           v.cpu_output.reg_ip := 0;
@@ -145,7 +148,7 @@ begin  -- architecture twoproc
         if r.cnt = 0 then
           if r.data_not_ins then
             v.data_not_ins := false;
-            v.data         := v.cpu_input.mem_rdata;
+            v.data         := r.cpu_input.mem_rdata;
             if r.cpu_output.reg_is = SWAP_R0_ADDR then
               v.state := ex_swap_r0_addr_1;
             elsif r.cpu_output.reg_is = SWAP_R1_ADDR then
@@ -155,10 +158,10 @@ begin  -- architecture twoproc
             end if;
           elsif r.second_ins_byte then
             v.second_ins_byte := false;
-            v.data            := v.cpu_input.mem_rdata;
+            v.data            := r.cpu_input.mem_rdata;
             v.state           := decode_two;
           else
-            v.cpu_output.reg_is := v.cpu_input.mem_rdata;
+            v.cpu_output.reg_is := r.cpu_input.mem_rdata;
             v.state             := decode;
           end if;
         else
@@ -185,7 +188,7 @@ begin  -- architecture twoproc
             v.state := ex_sub_r0_r1;
           when PRINT_R0 =>
             v.state := ex_print_r0;
-          when JP_IF_R0_NZ | JP_IF_R0_N | LOAD_R0 | LOAD_R1 | STORE_R0 | STORE_R1 | SWAP_R0_ADDR | SWAP_R1_ADDR =>
+          when JP_IF_R0_NZ | JP_IF_R0_Z | LOAD_R0 | LOAD_R1 | STORE_R0 | STORE_R1 | SWAP_R0_ADDR | SWAP_R1_ADDR =>
             --Fetch second byte for all two byte instructions
             v.second_ins_byte := true;
             v.state           := fetch_addr;
@@ -197,6 +200,10 @@ begin  -- architecture twoproc
         --Second decode stage for two byte instructions
         v.cpu_output.led_dec := '1';
         case r.cpu_output.reg_is is
+          when JP_IF_R0_NZ =>
+            v.state := ex_jp_if_r0_nz;
+          when JP_IF_R0_Z =>
+            v.state := ex_jp_if_r0_z;
           when LOAD_R0 =>
             v.state := ex_load_r0;
           when LOAD_R1 =>
@@ -260,6 +267,22 @@ begin  -- architecture twoproc
         v.cpu_output.digit_value := r.cpu_output.reg_r0;
         v.cpu_output.digit_latch := '1';
         v.state                  := fetch_addr;
+
+      when ex_jp_if_r0_nz =>
+        --JUmp to address pointed to by data is R0 != 0
+        v.cpu_output.led_exec := '1';
+        if not (r.cpu_output.reg_r0 = 0) then
+          v.cpu_output.reg_ip := r.data;
+        end if;
+        v.state := fetch_addr;
+
+      when ex_jp_if_r0_z =>
+        --JUmp to address pointed to by data is R0 == 0
+        v.cpu_output.led_exec := '1';
+        if r.cpu_output.reg_r0 = 0 then
+          v.cpu_output.reg_ip := r.data;
+        end if;
+        v.state := fetch_addr;
 
       when ex_load_r0 =>
         --Load the fetched data into R0

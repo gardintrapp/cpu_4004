@@ -3,7 +3,7 @@
 
 # Project   : 400X
 # Platform  : ModelSim
-# Generated : 2012-12-23 20:20:37 oddbjorn
+# Generated : 2012-12-31 16:26:16 oddbjorn
 
 
 # Define compilation command and options
@@ -23,14 +23,14 @@ UNIT-work-cpu_4004 = \
 	$(LIBRARY-work)/cpu_4004/_primary.dat
 UNIT-work-cpu_4004-twoproc = \
 	$(LIBRARY-work)/cpu_4004/twoproc.dat
+UNIT-work-cpu_4004_pkg = \
+	$(LIBRARY-work)/cpu_4004_pkg/_primary.dat
 UNIT-work-cpu_4004_tb = \
 	$(LIBRARY-work)/cpu_4004_tb/_primary.dat
 UNIT-work-cpu_4004_tb-test = \
 	$(LIBRARY-work)/cpu_4004_tb/test.dat
 UNIT-work-cpu_4004_tb_test_cfg = \
 	$(LIBRARY-work)/cpu_4004_tb_test_cfg/_primary.dat
-UNIT-work-cpu_400x_pkg = \
-	$(LIBRARY-work)/cpu_400x_pkg/_primary.dat
 UNIT-work-sim_pkg = \
 	$(LIBRARY-work)/sim_pkg/_primary.dat
 UNIT-work-sim_pkg-body = \
@@ -42,10 +42,10 @@ UNIT-work-sim_pkg-body = \
 ALL_UNITS = \
 	$(UNIT-work-cpu_4004) \
 	$(UNIT-work-cpu_4004-twoproc) \
+	$(UNIT-work-cpu_4004_pkg) \
 	$(UNIT-work-cpu_4004_tb) \
 	$(UNIT-work-cpu_4004_tb-test) \
 	$(UNIT-work-cpu_4004_tb_test_cfg) \
-	$(UNIT-work-cpu_400x_pkg) \
 	$(UNIT-work-sim_pkg) \
 	$(UNIT-work-sim_pkg-body)
 
@@ -84,23 +84,22 @@ cpu_4004 : \
 		$(UNIT-work-cpu_4004-twoproc) \
 		sim_pkg
 
+cpu_4004_pkg : \
+		library \
+		$(UNIT-work-cpu_4004_pkg)
+
 cpu_4004_tb : \
 		library \
 		$(UNIT-work-cpu_4004_tb) \
 		$(UNIT-work-cpu_4004_tb-test) \
 		cpu_4004 \
-		cpu_400x_pkg \
+		cpu_4004_pkg \
 		sim_pkg
 
 cpu_4004_tb_test_cfg : \
 		library \
 		$(UNIT-work-cpu_4004_tb_test_cfg) \
 		cpu_4004_tb
-
-cpu_400x_pkg \
-cpu_400X_pkg : \
-		library \
-		$(UNIT-work-cpu_400x_pkg)
 
 sim_pkg : \
 		library \
@@ -120,18 +119,18 @@ $(UNIT-work-cpu_4004-twoproc) : \
 		$(UNIT-work-cpu_4004)
 	$(COMPILE) $(OPTIONS) ../src/cpu_4004.vhd
 
+$(UNIT-work-cpu_4004_pkg) : \
+		../src/cpu_4004_pkg.vhd
+	$(COMPILE) $(OPTIONS) ../src/cpu_4004_pkg.vhd
+
 $(UNIT-work-cpu_4004_tb) \
 $(UNIT-work-cpu_4004_tb-test) \
 $(UNIT-work-cpu_4004_tb_test_cfg) : \
 		../src/cpu_4004_tb.vhd \
 		$(UNIT-work-cpu_4004) \
-		$(UNIT-work-cpu_400x_pkg) \
+		$(UNIT-work-cpu_4004_pkg) \
 		$(UNIT-work-sim_pkg)
 	$(COMPILE) $(OPTIONS) ../src/cpu_4004_tb.vhd
-
-$(UNIT-work-cpu_400x_pkg) : \
-		../src/cpu_400X_pkg.vhd
-	$(COMPILE) $(OPTIONS) ../src/cpu_400X_pkg.vhd
 
 $(UNIT-work-sim_pkg) \
 $(UNIT-work-sim_pkg-body) : \
