@@ -1,34 +1,33 @@
-0 ps reset info : Driveing inputs passive
-0 ps reset info : Driving reset
-0 ps clock info : Starting clock generator
-1007608 ps cpu info : Testing the HALT instruction
-1325800 ps cpu info : Testing the INC_R0 instruction
-3007672 ps cpu info : Testing the DEC_R0 instruction
-4689544 ps cpu info : Testing the INC_R1 instruction
-6371416 ps cpu info : Testing the DEC_R1 instruction
-8053288 ps cpu info : Testing the ADD_R0_R1 instruction
-8795736 ps cpu info : Testing the ADD_R0_R1 instruction
-9538184 ps cpu info : Testing the SUB_R0_R1 instruction
-10280632 ps cpu info : Testing the SUB_R0_R1 instruction
-11023080 ps cpu info : Testing the PRINT_R0 instruction
-11598856 ps cpu info : Testing the PRINT_R0 instruction
-12174632 ps cpu info : Testing the JP_IF_R0_NZ instruction
-13250424 ps cpu info : Testing the JP_IF_R0_NZ instruction
-14326216 ps cpu info : Testing the JP_IF_R0_Z instruction
-15568680 ps cpu info : Testing the JP_IF_R0_Z instruction
-16811144 ps cpu info : Testing the LOAD_R0 instruction
-17296008 ps cpu info : Testing the LOAD_R0 instruction
-17780872 ps cpu info : Testing the LOAD_R1 instruction
-18265736 ps cpu info : Testing the LOAD_R1 instruction
-18750600 ps cpu info : Testing the STORE_R0 instruction
-19402136 ps cpu info : Testing the STORE_R0 instruction
-20053672 ps cpu info : Testing the STORE_R1 instruction
-20705208 ps cpu info : Testing the STORE_R1 instruction
-21356744 ps cpu info : Testing the SWAP_R0_ADDR instruction
-22084040 ps cpu info : Testing the SWAP_R0_ADDR instruction
-22811336 ps cpu info : Testing the SWAP_R1_ADDR instruction
-23538632 ps cpu info : Testing the SWAP_R1_ADDR instruction
-25265928 ps simlation info : Ending simulation
+0 fs reset info : Driveing inputs passive
+0 fs reset info : Driving reset
+1007575681 fs cpu info : Testing the HALT instruction
+1340908989 fs cpu info : Testing the INC_R0 instruction
+3037878557 fs cpu info : Testing the DEC_R0 instruction
+4734848125 fs cpu info : Testing the INC_R1 instruction
+6431817693 fs cpu info : Testing the DEC_R1 instruction
+8128787261 fs cpu info : Testing the ADD_R0_R1 instruction
+8886362961 fs cpu info : Testing the ADD_R0_R1 instruction
+9643938661 fs cpu info : Testing the SUB_R0_R1 instruction
+10401514361 fs cpu info : Testing the SUB_R0_R1 instruction
+11159090061 fs cpu info : Testing the PRINT_R0 instruction
+11749999107 fs cpu info : Testing the PRINT_R0 instruction
+12340908153 fs cpu info : Testing the JP_IF_R0_NZ instruction
+13431817161 fs cpu info : Testing the JP_IF_R0_NZ instruction
+14522726169 fs cpu info : Testing the JP_IF_R0_Z instruction
+15780301831 fs cpu info : Testing the JP_IF_R0_Z instruction
+17037877493 fs cpu info : Testing the LOAD_R0 instruction
+17537877455 fs cpu info : Testing the LOAD_R0 instruction
+18037877417 fs cpu info : Testing the LOAD_R1 instruction
+18537877379 fs cpu info : Testing the LOAD_R1 instruction
+19037877341 fs cpu info : Testing the STORE_R0 instruction
+19704543957 fs cpu info : Testing the STORE_R0 instruction
+20371210573 fs cpu info : Testing the STORE_R1 instruction
+21037877189 fs cpu info : Testing the STORE_R1 instruction
+21704543805 fs cpu info : Testing the SWAP_R0_ADDR instruction
+22446967991 fs cpu info : Testing the SWAP_R0_ADDR instruction
+23189392177 fs cpu info : Testing the SWAP_R1_ADDR instruction
+23931816363 fs cpu info : Testing the SWAP_R1_ADDR instruction
+25674240549 fs simlation info : Ending simulation
 -------------------------------------------------------------------------------
 Summary
 -------------------------------------------------------------------------------

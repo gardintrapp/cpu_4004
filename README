@@ -1,0 +1,61 @@
+This is a VHDL model of 4-bit CPU called 4004. It is suitable for
+simulation and for synthesis.
+
+Directory structure
+
+./src
+All source files are located here.
+
+./sim
+All files used for simulation are located here.
+
+Compilation
+The project can be compiled with a VHDL simulator or a logic
+synthesizer. 
+
+GHDL
+An auto generated Makefile is present in ./sim. To compile the project
+do:
+$ cd sim
+$ make all
+$ ghdl -e --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c cpu_4004_tb
+The last command may fail due to some part of the design being
+obsoleted by some other part of the project. This is because the
+Makefile is not capable of determine the compilation order.
+
+The correct order is
+$ ghdl -a --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c ../src/sim_pkg.vhd
+$ ghdl -a --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c ../src/cpu_4004_pkg.vhd
+$ ghdl -a --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c ../src/cpu_4004.vhd
+$ ghdl -a --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c ../src/cpu_4004_tb.vhd
+$ ghdl -e --workdir=work --work=work --ieee=synopsys -fexplicit --std=93c cpu_4004_tb
+
+Simulation
+
+GHDL
+$ ghdl -r cpu_4004_tb --wave=cpu_4004_wave.ghw
+The simulations writes simulation text output to the file
+cpu_4004_sim.out. The signals can be inspected in the file
+cpu_4004_wave.ghw with gtkwave.
+$ cat cpu_4004_sim.out
+.
+.
+.
+-------------------------------------------------------------------------------
+infos: 32
+notes: 0
+warnings: 0
+errors: 0
+failures: 0
+Suppressed messged: 0
+-------------------------------------------------------------------------------
+Result: PASS
+-------------------------------------------------------------------------------
+$ gtkwave cpu_4004_wave.ghw
+
+TODO:
+Create the necessary interface logic to interface the CPU to switches,
+buttons, displays and LEDs. Synthesize the CPU for a FPGA and run it
+on a development board. Create logic to input a program using
+switches and buttons. Implement logic to step through the program
+executing.
