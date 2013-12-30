@@ -1,6 +1,12 @@
-This is a VHDL model of 4-bit CPU called 4004. It is suitable for
-simulation and for synthesis.
-
+This is a VHDL model of 4-bit CPU called 4004 with a test bench. It is
+suitable for simulation and probably for synthesis. The CPU was not
+made to be useful in itself, but to demonstrate some HDL coding and
+test bench techniques. For HDL coding this demonstrates the Two
+process method as described here
+http://www.gaisler.com/doc/vhdl2proc.pdf. For test bench it
+demonstrates the use of a test sequencer and the use of bus functional
+models.
+ 
 Directory structure
 
 ./src
